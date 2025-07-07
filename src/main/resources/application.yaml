@@ -1,4 +1,16 @@
-# example values
+spring:
+  datasource:
+    username: root
+    password: Ric137!Marina!
+    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+
+
 
 indexing-settings:
   sites:

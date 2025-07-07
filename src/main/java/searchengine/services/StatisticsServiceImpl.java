@@ -8,6 +8,7 @@ import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
+import searchengine.services.serviceinterfaces.StatisticsService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private final Random random = new Random();
     private final SitesList sites;
+
 
     @Override
     public StatisticsResponse getStatistics() {
