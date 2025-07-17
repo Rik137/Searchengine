@@ -13,8 +13,6 @@ import searchengine.services.serviceinterfaces.StatisticsService;
 
 import java.util.HashMap;
 import java.util.Map;
-;
-
 
 @RestController
 @RequestMapping("/api")
@@ -54,6 +52,26 @@ public class ApiController {
         } else {
             response.put("result", false);
             response.put("error", "Не удалось запустить индексацию");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    @GetMapping("/stopIndexing")
+    public ResponseEntity<Map<String, Object>> stopIndexing() {
+        Map<String, Object> response = new HashMap<>();
+
+        if (!indexingService.isIndexing()) {
+            response.put("result", false);
+            response.put("error", "Индексация не запущена");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        boolean stopped = indexingService.stopIndexing();
+        if (stopped) {
+            response.put("result", true);
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("result", false);
+            response.put("error", "Не удалось остановить индексацию");
             return ResponseEntity.status(500).body(response);
         }
     }

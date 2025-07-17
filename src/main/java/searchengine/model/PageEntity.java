@@ -7,7 +7,7 @@ import lombok.Setter;
 import javax.persistence.*;
 @Entity
 @Table(name = "page", indexes = {@Index(name = "index_path",
-        columnList = "path")})
+        columnList = "path")}, uniqueConstraints = @UniqueConstraint(columnNames = {"site_id","path"}))
 @NoArgsConstructor
 @Setter
 @Getter
