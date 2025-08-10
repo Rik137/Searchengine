@@ -7,7 +7,7 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
 
@@ -19,8 +19,15 @@ indexing-settings:
       name: PlayBack.Ru
     - url: https://dombulgakova.ru/
       name: DomBulgakova.Ru
-    - url: https://www.svetlovka.ru/
-      name: Svetlovka.Ru
+
+
+
+
+
+
+
+
+
 
    
 

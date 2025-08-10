@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
@@ -9,6 +10,7 @@ import searchengine.dto.statistics.StatisticsData;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
 import searchengine.model.SiteEntity;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.serviceinterfaces.StatisticsService;
@@ -18,18 +20,21 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StatisticsServiceImpl implements StatisticsService {
 
     private final SitesList sitesList;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
+    private final LemmaRepository lemmaRepository;
 
     @Override
     public StatisticsResponse getStatistics() {
 
+        log.info("Выполняется сбор статистики по сайтам...");
+
         List<Site> configSites = sitesList.getSites();
 
-        // Берём сайты из БД, чтобы получить актуальный статус
         Iterable<SiteEntity> siteEntitiesIterable = siteRepository.findAll();
         List<SiteEntity> siteEntities = new ArrayList<>();
         siteEntitiesIterable.forEach(siteEntities::add);
@@ -38,7 +43,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         total.setSites(configSites.size());
 
         int totalPages = 0;
-        int totalLemmas = 0;  // Если есть леммы, можно считать
+        int totalLemmas = 0;
         boolean indexing = false;
 
         List<DetailedStatisticsItem> detailed = new ArrayList<>();
@@ -53,15 +58,22 @@ public class StatisticsServiceImpl implements StatisticsService {
                     .findFirst().orElse(null);
 
             if (siteEntity != null) {
-                int pagesCount = pageRepository.countBySite(siteEntity);
-                item.setPages(pagesCount);
-                // TODO: заменить на реальный подсчёт лемм, если есть
+                int pagesCount = pageRepository.countBySiteId(siteEntity.getId());
                 int lemmasCount = 0;
-                item.setLemmas(lemmasCount);
 
+                try {
+                    lemmasCount = lemmaRepository.findAllBySite(siteEntity).size();
+                } catch (Exception e) {
+                    log.warn("Ошибка при подсчёте лемм для сайта {}: {}", siteEntity.getUrl(), e.getMessage());
+                }
+
+                item.setPages(pagesCount);
+                item.setLemmas(lemmasCount);
                 item.setStatus(siteEntity.getStatus().name());
                 item.setError(siteEntity.getLastError() == null ? "" : siteEntity.getLastError());
-                item.setStatusTime(siteEntity.getStatusTime().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli());
+                item.setStatusTime(siteEntity.getStatusTime()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toInstant().toEpochMilli());
 
                 totalPages += pagesCount;
                 totalLemmas += lemmasCount;
@@ -69,8 +81,10 @@ public class StatisticsServiceImpl implements StatisticsService {
                 if (siteEntity.getStatus() == searchengine.model.StatusEntity.INDEXING) {
                     indexing = true;
                 }
+
             } else {
-                // Если сайт ещё не в базе — ставим 0 и статус UNKNOWN
+                log.warn("Сайт {} отсутствует в базе данных. Статус: UNKNOWN", site.getUrl());
+
                 item.setPages(0);
                 item.setLemmas(0);
                 item.setStatus("UNKNOWN");
@@ -92,6 +106,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         StatisticsResponse response = new StatisticsResponse();
         response.setStatistics(data);
         response.setResult(true);
+
+        log.info("Статистика успешно собрана: {} сайтов, {} страниц, {} лемм", totalPages, totalPages, totalLemmas);
 
         return response;
     }

@@ -9,13 +9,12 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-@Entity
-@Table(name="site")
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString(exclude = "pages")
+@Entity
+@Table(name="site", uniqueConstraints = @UniqueConstraint(columnNames = {"url"}))
 public class SiteEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

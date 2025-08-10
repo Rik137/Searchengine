@@ -13,17 +13,16 @@ public class UrlFilter {
     public static boolean isSkippable(String url) {
         String lowered = url.toLowerCase();
 
-        // 1. Файл с неподходящим расширением
+        if (lowered.contains("?")) {
+            lowered = lowered.substring(0, lowered.indexOf('?'));
+        }
+
         for (String ext : blockedExtensions) {
-            if (lowered.contains("?")) {
-                lowered = lowered.substring(0, lowered.indexOf('?'));
-            }
             if (lowered.endsWith(ext)) {
                 return true;
             }
         }
 
-        // 2. Якоря (#) и параметры (?)
         if (url.contains("#") || url.contains("?")) {
             return true;
         }
